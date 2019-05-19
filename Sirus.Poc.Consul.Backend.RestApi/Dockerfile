@@ -16,4 +16,11 @@ RUN dotnet publish "Sirus.Poc.Consul.Backend.RestApi.csproj" -c Release -o /app
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
-ENTRYPOINT ["dotnet", "Sirus.Poc.Consul.Backend.RestApi.dll"]
+
+# Add Envconsule to path!
+RUN curl -so envconsul.tgz https://releases.hashicorp.com/envconsul/0.7.3/envconsul_0.7.3_linux_amd64.tgz
+RUN tar -xvzf envconsul.tgz
+RUN mv envconsul /usr/local/bin/envconsul
+RUN chmod +x /usr/local/bin/envconsul
+
+ENTRYPOINT ["envconsul", "-prefix", "dev/Sirus.Poc.Consul.Backend.RestApi", "-consul-addr", "host.docker.internal:8500", "dotnet", "Sirus.Poc.Consul.Backend.RestApi.dll"]
